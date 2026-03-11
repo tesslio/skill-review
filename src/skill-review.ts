@@ -1,5 +1,11 @@
 import { dirname, join } from 'node:path';
 
+/** Safely convert an unknown value to a readable string */
+function stringify(value: unknown): string {
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value, null, 2);
+}
+
 /**
  * Extract the first complete top-level JSON object from a string
  * that may contain non-JSON text before/after it.
@@ -94,8 +100,8 @@ export async function runSkillReview(
     };
   }
   let parsed: {
-    contentJudge?: { normalizedScore?: number; evaluation?: string };
-    validation?: { output?: string };
+    contentJudge?: { normalizedScore?: number; evaluation?: unknown };
+    validation?: { output?: unknown };
   };
 
   try {
@@ -117,12 +123,12 @@ export async function runSkillReview(
   const outputParts: string[] = [];
   if (parsed.validation?.output) {
     outputParts.push(
-      '### Validation Checks\n\n' + parsed.validation.output,
+      '### Validation Checks\n\n' + stringify(parsed.validation.output),
     );
   }
   if (parsed.contentJudge?.evaluation) {
     outputParts.push(
-      '### Review Details\n\n' + parsed.contentJudge.evaluation,
+      '### Review Details\n\n' + stringify(parsed.contentJudge.evaluation),
     );
   }
 
