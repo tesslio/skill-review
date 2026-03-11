@@ -477,7 +477,7 @@ describe('postOrUpdateComment', () => {
     const callArgs = (createCommentMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     const body = callArgs.body as string;
     expect(body).toContain('`skills/my-skill/SKILL.md`');
-    expect(body).toContain('tessl_score-85%25');
+    expect(body).toContain('review_score-85%25');
     expect(body).toContain('✅');
     expect(body).toContain('Tessl Skill Review');
   });
@@ -493,7 +493,7 @@ describe('postOrUpdateComment', () => {
     const callArgs = (createCommentMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     const body = callArgs.body as string;
     expect(body).toContain('❌');
-    expect(body).toContain('tessl_score-30%25');
+    expect(body).toContain('review_score-30%25');
   });
 
   test('comment body shows ⚠️ for errored skill', async () => {

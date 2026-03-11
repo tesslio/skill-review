@@ -19,7 +19,7 @@ function scoreBadge(score: number): string {
   const color =
     score >= 80 ? 'brightgreen' : score >= 60 ? 'yellow' : score >= 40 ? 'orange' : 'red';
   const logoParam = encodeURIComponent(TESSL_LOGO_SVG);
-  return `![score](https://img.shields.io/badge/tessl_score-${score}%25-${color}?logo=${logoParam})`;
+  return `![score](https://img.shields.io/badge/review_score-${score}%25-${color}?logo=${logoParam})`;
 }
 
 function formatComment(
