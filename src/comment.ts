@@ -13,13 +13,19 @@ function escapeMarkdown(text: string): string {
   return text.replace(/[\\`*_{}[\]()#+\-.!|>~]/g, '\\$&');
 }
 
+function scoreBadge(score: number): string {
+  const color =
+    score >= 80 ? 'brightgreen' : score >= 60 ? 'yellow' : score >= 40 ? 'orange' : 'red';
+  return `![score](https://img.shields.io/badge/skill_score-${score}%25-${color})`;
+}
+
 function formatComment(
   results: SkillReviewResult[],
   threshold: number,
 ): string {
   const sections = results.map((result) => {
     const scoreText =
-      result.score >= 0 ? `Score: ${result.score}%` : 'Score: N/A';
+      result.score >= 0 ? `\`${result.score}%\`` : '`N/A`';
     const emoji =
       result.error
         ? ' ⚠️'
@@ -36,13 +42,23 @@ function formatComment(
         body += `\n<details>\n<summary>Output</summary>\n\n\`\`\`\n${escapeForCodeFence(result.output)}\n\`\`\`\n\n</details>\n`;
       }
     } else {
-      body = `\n<details>\n<summary>Review Details</summary>\n\n${result.output}\n\n</details>\n`;
+      const badge = result.score >= 0 ? `\n${scoreBadge(result.score)}\n` : '';
+      body = `${badge}\n<details>\n<summary>Review Details</summary>\n\n${result.output}\n\n</details>\n`;
     }
 
     return `### \`${result.skillPath}\` — ${scoreText}${emoji}\n${body}`;
   });
 
-  return `${COMMENT_MARKER}\n## 🔍 Tessl Skill Review\n\n${sections.join('\n---\n\n')}\n---\n\n*Powered by [Tessl](https://tessl.io) — evaluate and optimize your agent skills. Run \`npm i -g @tessl/cli && tessl skill review\` locally, or visit the [Tessl Registry](https://tessl.io/registry) to discover evaluated skills.*`;
+  const footer = [
+    '---',
+    '',
+    'Want to improve your skill? Just point your agent (Claude Code, Codex, etc.) at [this Tessl guide](https://tessl.io/registry) and ask it to optimize your skill.',
+    'Contact [@fernandezbaptiste](https://github.com/fernandezbaptiste) if you hit any snags.',
+    '',
+    '*Kudos — you\'re in the top 1% of folks reviewing their skills.* ⚡',
+  ].join('\n');
+
+  return `${COMMENT_MARKER}\n## 🔍 Tessl Skill Review\n\n${sections.join('\n---\n\n')}\n${footer}`;
 }
 
 export async function postOrUpdateComment(

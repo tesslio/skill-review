@@ -477,7 +477,7 @@ describe('postOrUpdateComment', () => {
     const callArgs = (createCommentMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     const body = callArgs.body as string;
     expect(body).toContain('`skills/my-skill/SKILL.md`');
-    expect(body).toContain('Score: 85%');
+    expect(body).toContain('`85%`');
     expect(body).toContain('✅');
     expect(body).toContain('Tessl Skill Review');
   });
@@ -493,7 +493,7 @@ describe('postOrUpdateComment', () => {
     const callArgs = (createCommentMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     const body = callArgs.body as string;
     expect(body).toContain('❌');
-    expect(body).toContain('Score: 30%');
+    expect(body).toContain('`30%`');
   });
 
   test('comment body shows ⚠️ for errored skill', async () => {
@@ -507,7 +507,7 @@ describe('postOrUpdateComment', () => {
     const callArgs = (createCommentMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     const body = callArgs.body as string;
     expect(body).toContain('⚠️');
-    expect(body).toContain('Score: N/A');
+    expect(body).toContain('`N/A`');
   });
 
   test('no emoji when threshold is 0', async () => {
