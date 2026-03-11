@@ -43,8 +43,8 @@ function formatComment(
         body += `\n<details>\n<summary>Output</summary>\n\n\`\`\`\n${escapeForCodeFence(result.output)}\n\`\`\`\n\n</details>\n`;
       }
     } else {
-      const badge = result.score >= 0 ? `\n${scoreBadge(result.score)}${emoji}\n` : '';
-      body = `${badge}\n<details>\n<summary>Review Details</summary>\n\n${result.output}\n\n</details>\n`;
+      const badge = result.score >= 0 ? ` ${scoreBadge(result.score)}${emoji}` : '';
+      body = `${badge}\n\n<details>\n<summary>Review Details</summary>\n\n${result.output}\n\n</details>\n`;
     }
 
     return `### \`${result.skillPath}\`\n${body}`;
@@ -53,7 +53,7 @@ function formatComment(
   const footer = [
     '---',
     '',
-    'To improve your skill, point your Claude Code to [this Tessl guide](https://docs.tessl.io/evaluate/optimize-a-skill-using-best-practices) and ask it to *optimize* your skill. [@fernandezbaptiste](https://github.com/fernandezbaptiste) if you hit any issues.',
+    'To improve your skill, point your Claude Code to this Tessl [guide](https://docs.tessl.io/evaluate/optimize-a-skill-using-best-practices) and ask it to *optimize* your skill. [@fernandezbaptiste](https://github.com/fernandezbaptiste) if you hit any issues.',
   ].join('\n');
 
   return `${COMMENT_MARKER}\n## 🔍 Tessl Skill Review\n\n${sections.join('\n---\n\n')}\n${footer}`;
