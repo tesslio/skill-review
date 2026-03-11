@@ -1,0 +1,29 @@
+name: 'Tessl Skill Review'
+description: 'Automatically review SKILL.md files changed in a pull request and post results as a PR comment'
+branding:
+  icon: check-circle
+  color: purple
+inputs:
+  path:
+    description: 'Root path to search for SKILL.md files'
+    default: '.'
+  comment:
+    description: 'Whether to post results as a PR comment'
+    default: 'true'
+  fail-threshold:
+    description: 'Minimum average score (0-100) to pass the check. Set to 0 to never fail.'
+    default: '0'
+runs:
+  using: 'composite'
+  steps:
+    - uses: oven-sh/setup-bun@v2
+    - run: bun install --production --frozen-lockfile
+      shell: bash
+      working-directory: ${{ github.action_path }}
+    - run: bun ${{ github.action_path }}/src/main.ts
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_COMMENT: ${{ inputs.comment }}
+        INPUT_FAIL_THRESHOLD: ${{ inputs.fail-threshold }}
+        GITHUB_TOKEN: ${{ github.token }}
