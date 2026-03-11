@@ -47,9 +47,14 @@ async function main(): Promise<void> {
     results.push(...batchResults);
   }
 
-  // 4. Post PR comment
+  // 4. Post PR comment (may fail on fork PRs due to read-only token)
   if (shouldComment) {
-    await postOrUpdateComment(results, threshold);
+    try {
+      await postOrUpdateComment(results, threshold);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      core.warning(`Could not post PR comment (expected for fork PRs): ${msg}`);
+    }
   }
 
   // 5. Check threshold
