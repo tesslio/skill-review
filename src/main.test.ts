@@ -356,6 +356,36 @@ describe('runSkillReview', () => {
     expect(noThreshold.passed).toBe(true);
   });
 
+  test('formats structured evaluation object into markdown', async () => {
+    const jsonOutput = JSON.stringify({
+      contentJudge: {
+        normalizedScore: 0.5,
+        evaluation: {
+          scores: {
+            conciseness: { score: 2, reasoning: 'Too verbose' },
+            actionability: { score: 3, reasoning: 'Good examples' },
+          },
+          overall_assessment: 'Decent skill with room for improvement.',
+          suggestions: ['Be more concise', 'Add validation steps'],
+        },
+      },
+    });
+
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(jsonOutput, '', 0);
+
+    const result = await runSkillReview('a/SKILL.md', 0);
+    expect(result.output).toContain('| Dimension |');
+    expect(result.output).toContain('**conciseness**');
+    expect(result.output).toContain('**actionability**');
+    expect(result.output).toContain('Too verbose');
+    expect(result.output).toContain('**Overall:**');
+    expect(result.output).toContain('Decent skill with room for improvement.');
+    expect(result.output).toContain('**Suggestions:**');
+    expect(result.output).toContain('- Be more concise');
+    expect(result.output).not.toContain('[object Object]');
+  });
+
   test('JSON with prefix and suffix text', async () => {
     const json = JSON.stringify({
       contentJudge: { normalizedScore: 0.72, evaluation: 'decent' },

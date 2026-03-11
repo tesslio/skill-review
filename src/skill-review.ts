@@ -1,5 +1,58 @@
 import { dirname, join } from 'node:path';
 
+/** Format a score dimension as a table row with visual bar */
+function scoreBar(score: number, max = 3): string {
+  const filled = '█'.repeat(score);
+  const empty = '░'.repeat(max - score);
+  return `${filled}${empty} ${score}/${max}`;
+}
+
+/**
+ * Format the evaluation object into readable markdown.
+ * Handles the known shape: { scores, overall_assessment, suggestions }
+ * Falls back to JSON for unknown shapes.
+ */
+function formatEvaluation(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value !== 'object' || value === null) {
+    return JSON.stringify(value, null, 2);
+  }
+
+  const eval_ = value as Record<string, unknown>;
+  const parts: string[] = [];
+
+  // Format scores as a table
+  if (eval_.scores && typeof eval_.scores === 'object') {
+    const scores = eval_.scores as Record<
+      string,
+      { score?: number; reasoning?: string }
+    >;
+    parts.push('| Dimension | Score | Detail |');
+    parts.push('|-----------|-------|--------|');
+    for (const [key, val] of Object.entries(scores)) {
+      const label = key.replace(/_/g, ' ');
+      const bar = typeof val.score === 'number' ? scoreBar(val.score) : '—';
+      const reasoning = val.reasoning ?? '';
+      parts.push(`| **${label}** | ${bar} | ${reasoning} |`);
+    }
+  }
+
+  // Overall assessment
+  if (typeof eval_.overall_assessment === 'string') {
+    parts.push('', `**Overall:** ${eval_.overall_assessment}`);
+  }
+
+  // Suggestions as a checklist
+  if (Array.isArray(eval_.suggestions) && eval_.suggestions.length > 0) {
+    parts.push('', '**Suggestions:**');
+    for (const s of eval_.suggestions) {
+      parts.push(`- ${s}`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join('\n') : JSON.stringify(value, null, 2);
+}
+
 /** Safely convert an unknown value to a readable string */
 function stringify(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -128,7 +181,7 @@ export async function runSkillReview(
   }
   if (parsed.contentJudge?.evaluation) {
     outputParts.push(
-      '### Review Details\n\n' + stringify(parsed.contentJudge.evaluation),
+      '### Review Details\n\n' + formatEvaluation(parsed.contentJudge.evaluation),
     );
   }
 
