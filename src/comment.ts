@@ -53,7 +53,14 @@ function formatComment(
   const footer = [
     '---',
     '',
-    'To improve your skill, point your Claude Code to this Tessl [guide](https://docs.tessl.io/evaluate/optimize-a-skill-using-best-practices) and ask it to *optimize* your skill. [@fernandezbaptiste](https://github.com/fernandezbaptiste) if you hit any issues.',
+    'To improve your score, point your agent at the Tessl [optimization guide](https://docs.tessl.io/evaluate/optimize-a-skill-using-best-practices). Need help? Jump on our [Discord](https://discord.gg/jbb2vHnHZQ).',
+    '',
+    '<details>',
+    '<summary>Feedback</summary>',
+    '',
+    'Report issues with this review at [tessl/skill-review](https://github.com/tesslio/skill-review/issues), or send private feedback from your terminal with `tessl feedback`.',
+    '',
+    '</details>',
   ].join('\n');
 
   return `${COMMENT_MARKER}\n## 🔍 Tessl Skill Review\n\n${sections.join('\n---\n\n')}\n${footer}`;
