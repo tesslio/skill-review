@@ -58,7 +58,7 @@ function formatComment(
     '<details>',
     '<summary>Feedback</summary>',
     '',
-    'Report issues with this review at [tessl/skill-review](https://github.com/tesslio/skill-review/issues), or send private feedback from your terminal with `tessl feedback`.',
+    'Report issues with this review at [tesslio/skill-review](https://github.com/tesslio/skill-review/issues), or send private feedback from your terminal with `tessl feedback`.',
     '',
     '</details>',
   ].join('\n');
