@@ -16,6 +16,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - uses: tesslio/setup-tessl@v1
     - uses: oven-sh/setup-bun@v2
     - run: bun install --production --frozen-lockfile
       shell: bash

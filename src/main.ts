@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 import { getChangedSkillFiles } from './changed-files.ts';
 import { postOrUpdateComment } from './comment.ts';
-import { installTessl } from './install-tessl.ts';
 import type { SkillReviewResult } from './skill-review.ts';
 import { runSkillReview } from './skill-review.ts';
 
@@ -24,10 +23,7 @@ async function main(): Promise<void> {
     `Found ${changedFiles.length} changed SKILL.md file(s): ${changedFiles.join(', ')}`,
   );
 
-  // 2. Install tessl CLI
-  await installTessl();
-
-  // 3. Run reviews with concurrency limit
+  // 2. Run reviews with concurrency limit
   const results: SkillReviewResult[] = [];
   for (let i = 0; i < changedFiles.length; i += CONCURRENCY_LIMIT) {
     const batch = changedFiles.slice(i, i + CONCURRENCY_LIMIT);
