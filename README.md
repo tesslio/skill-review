@@ -22,10 +22,12 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: tesslio/skill-review@main
+      - uses: tesslio/skill-review@22e928dd837202b2b1d1397e0114c92e0fae5ead
 ```
 
 That's it. Any PR that modifies a `SKILL.md` file will get an automated review comment.
+
+> **Pin to SHA for supply-chain safety.** The example above pins to a specific commit rather than `@main`. This ensures your CI only runs code you've reviewed. To update, check the [latest commit on main](https://github.com/tesslio/skill-review/commits/main) and replace the SHA.
 
 ## Inputs
 
@@ -40,7 +42,7 @@ That's it. Any PR that modifies a `SKILL.md` file will get an automated review c
 To enforce a minimum skill quality score, set `fail-threshold`:
 
 ```yaml
-- uses: tesslio/skill-review@main
+- uses: tesslio/skill-review@22e928dd837202b2b1d1397e0114c92e0fae5ead
   with:
     fail-threshold: 70
 ```
