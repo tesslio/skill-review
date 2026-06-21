@@ -1,0 +1,74 @@
+{
+  "review": {
+    "reviewScore": 18
+  },
+  "validation": {
+    "checks": [
+      {
+        "name": "skill_md_line_count",
+        "status": "passed",
+        "message": "SKILL.md line count is 171 (<= 500)",
+        "details": {
+          "line_count": 171,
+          "max_lines": 500
+        }
+      },
+      {
+        "name": "frontmatter_valid",
+        "status": "passed",
+        "message": "YAML frontmatter is valid",
+        "details": {
+          "keys": ["name", "description"]
+        }
+      },
+      {
+        "name": "name_field",
+        "status": "passed",
+        "message": "'name' field is valid: 'legibility-review'",
+        "details": {
+          "value": "legibility-review",
+          "length": 17
+        }
+      },
+      {
+        "name": "description_field",
+        "status": "error",
+        "message": "'description' must not contain XML tags",
+        "details": {
+          "length": 915
+        }
+      },
+      {
+        "name": "body_present",
+        "status": "passed",
+        "message": "SKILL.md body is present",
+        "details": {
+          "body_chars": 17335
+        }
+      }
+    ],
+    "overallPassed": false,
+    "errorCount": 1,
+    "warningCount": 0,
+    "skillName": "legibility-review",
+    "skillDescription": "How to review code so a reader without your context can understand each piece."
+  },
+  "contentJudge": {
+    "success": true,
+    "evaluation": {
+      "scores": {
+        "conciseness": {
+          "score": 0,
+          "reasoning": "Deterministic validation failed; LLM judge was not run."
+        }
+      },
+      "overall_assessment": "Skill failed deterministic validation. LLM judge evaluation was skipped.",
+      "suggestions": [
+        "Fix the deterministic validation errors before running LLM judge."
+      ],
+      "validation_skipped": true
+    },
+    "weightedScore": 0,
+    "normalizedScore": 0
+  }
+}

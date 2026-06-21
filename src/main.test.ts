@@ -258,7 +258,23 @@ describe('runSkillReview', () => {
         normalizedScore: 0.85,
         evaluation: 'Good skill definition.',
       },
-      validation: { output: 'All checks passed.' },
+      validation: {
+        checks: [
+          {
+            name: 'frontmatter_valid',
+            status: 'passed',
+            message: 'YAML frontmatter is valid',
+          },
+          {
+            name: 'body_present',
+            status: 'passed',
+            message: 'SKILL.md body is present',
+          },
+        ],
+        overallPassed: true,
+        errorCount: 0,
+        warningCount: 0,
+      },
     });
 
     // @ts-expect-error mock assignment
@@ -269,8 +285,33 @@ describe('runSkillReview', () => {
     expect(result.score).toBe(85);
     expect(result.passed).toBe(true);
     expect(result.error).toBeUndefined();
-    expect(result.output).toContain('All checks passed.');
+    expect(result.output).toContain('### Validation Checks');
+    expect(result.output).toContain('Validation passed');
+    expect(result.output).toContain('YAML frontmatter is valid');
+    expect(result.output).toContain('SKILL.md body is present');
     expect(result.output).toContain('Good skill definition.');
+  });
+
+  test('renders failing validation checks from golden fixture', async () => {
+    const fixture = await Bun.file(
+      new URL('./fixtures/review-validation-failed.json', import.meta.url),
+    ).text();
+
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(fixture, '', 0);
+
+    const result = await runSkillReview('skills/legibility-review/SKILL.md', 0);
+    expect(result.output).toContain('### Validation Checks');
+    // Summary reflects the failing run.
+    expect(result.output).toContain('Validation failed');
+    expect(result.output).toContain('1 error(s)');
+    // The failing "error" check is rendered with its message and marker.
+    expect(result.output).toContain('description field');
+    expect(result.output).toContain("'description' must not contain XML tags");
+    expect(result.output).toContain('❌');
+    // A passing check is also rendered.
+    expect(result.output).toContain('YAML frontmatter is valid');
+    expect(result.output).toContain('✅');
   });
 
   test('CLI failure (non-zero exit)', async () => {
