@@ -128,7 +128,15 @@ export async function runSkillReview(
   ]);
 
   const exitCode = await proc.exited;
-  if (exitCode !== 0) {
+
+  // The CLI prints the full review JSON to stdout and THEN exits 1 when
+  // validation.overallPassed is false ("Skill validation failed"). A non-zero
+  // exit therefore does NOT mean the review produced no output — the JSON on
+  // stdout is the most valuable feedback. Only treat a non-zero exit as a hard
+  // error when stdout has no usable JSON (genuine crash / not-found / network).
+  const jsonStr = extractJson(stdout);
+
+  if (exitCode !== 0 && !jsonStr) {
     console.warn(
       `tessl skill review failed for ${skillFilePath} (exit code ${exitCode}): ${stderr}`,
     );
@@ -141,7 +149,6 @@ export async function runSkillReview(
     };
   }
 
-  const jsonStr = extractJson(stdout);
   if (!jsonStr) {
     console.warn(`No JSON found in skill review output for ${skillFilePath}`);
     return {

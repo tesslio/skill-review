@@ -283,6 +283,26 @@ describe('runSkillReview', () => {
     expect(result.error).toBe('Command not found');
   });
 
+  test('exit code 1 with valid JSON (validation failure) is not an error', async () => {
+    // The CLI prints the full review JSON to stdout and then exits 1 when
+    // validation.overallPassed is false. We must preserve that review.
+    const fixture = await Bun.file(
+      new URL('./fixtures/review-validation-failed.json', import.meta.url),
+    ).text();
+
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(fixture, 'Skill validation failed', 1);
+
+    const result = await runSkillReview('skills/test/SKILL.md', 50);
+    expect(result.error).toBeUndefined();
+    expect(result.score).not.toBe(-1);
+    // contentJudge.normalizedScore is 0 in the fixture → score 0.
+    expect(result.score).toBe(0);
+    // Review content from the parsed JSON should be rendered, not empty.
+    expect(result.output.length).toBeGreaterThan(0);
+    expect(result.output).toContain('Review Details');
+  });
+
   test('CLI failure with threshold 0 still passes', async () => {
     // @ts-expect-error mock assignment
     Bun.spawn = makeMockSpawn('', 'some error', 1);
