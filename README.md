@@ -2,7 +2,7 @@
 
 A GitHub Action that automatically reviews `SKILL.md` files changed in a pull request and posts the results as a PR comment.
 
-**No authentication required.** This action runs `tessl skill review` locally — no Tessl account or API token needed. The only token used is the GitHub-provided `GITHUB_TOKEN` for posting PR comments.
+**No Tessl account required.** The review is performed by Tessl's hosted API — `tessl skill review` sends your `SKILL.md` content to Tessl over the network and returns the result. No Tessl account or API token is needed: the API is called anonymously. The only credential involved is the GitHub-provided `GITHUB_TOKEN`, used to post PR comments.
 
 ## Usage
 
@@ -51,7 +51,7 @@ PRs with any skill scoring below 70% will fail the check.
 
 1. Detects which `SKILL.md` files were changed in the PR
 2. Installs the [Tessl CLI](https://tessl.io)
-3. Runs `tessl skill review` on each changed skill
+3. Runs `tessl skill review` on each changed skill, which sends its contents to Tessl's hosted API for review
 4. Posts (or updates) a review comment on the PR with scores and detailed feedback
 5. Optionally fails the check if any score is below the threshold
 
