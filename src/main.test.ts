@@ -254,6 +254,7 @@ describe('runSkillReview', () => {
 
   test('successful review with JSON output', async () => {
     const jsonOutput = JSON.stringify({
+      review: { reviewScore: 85 },
       contentJudge: {
         normalizedScore: 0.85,
         evaluation: 'Good skill definition.',
@@ -324,33 +325,34 @@ describe('runSkillReview', () => {
   test('threshold pass/fail logic', async () => {
     const makeJson = (score: number) =>
       JSON.stringify({
-        contentJudge: { normalizedScore: score, evaluation: 'test' },
+        review: { reviewScore: score },
+        contentJudge: { evaluation: 'test' },
       });
 
-    // Score 60% with threshold 50 → passed
+    // Score 60 with threshold 50 → passed
     // @ts-expect-error mock assignment
-    Bun.spawn = makeMockSpawn(makeJson(0.6), '', 0);
+    Bun.spawn = makeMockSpawn(makeJson(60), '', 0);
     const passing = await runSkillReview('a/SKILL.md', 50);
     expect(passing.score).toBe(60);
     expect(passing.passed).toBe(true);
 
-    // Score 40% with threshold 50 → failed
+    // Score 40 with threshold 50 → failed
     // @ts-expect-error mock assignment
-    Bun.spawn = makeMockSpawn(makeJson(0.4), '', 0);
+    Bun.spawn = makeMockSpawn(makeJson(40), '', 0);
     const failing = await runSkillReview('b/SKILL.md', 50);
     expect(failing.score).toBe(40);
     expect(failing.passed).toBe(false);
 
-    // Score 50% with threshold 50 → passed (>= threshold)
+    // Score 50 with threshold 50 → passed (>= threshold)
     // @ts-expect-error mock assignment
-    Bun.spawn = makeMockSpawn(makeJson(0.5), '', 0);
+    Bun.spawn = makeMockSpawn(makeJson(50), '', 0);
     const boundary = await runSkillReview('c/SKILL.md', 50);
     expect(boundary.score).toBe(50);
     expect(boundary.passed).toBe(true);
 
     // Any score with threshold 0 → always passed
     // @ts-expect-error mock assignment
-    Bun.spawn = makeMockSpawn(makeJson(0.1), '', 0);
+    Bun.spawn = makeMockSpawn(makeJson(10), '', 0);
     const noThreshold = await runSkillReview('d/SKILL.md', 0);
     expect(noThreshold.score).toBe(10);
     expect(noThreshold.passed).toBe(true);
@@ -388,7 +390,8 @@ describe('runSkillReview', () => {
 
   test('JSON with prefix and suffix text', async () => {
     const json = JSON.stringify({
-      contentJudge: { normalizedScore: 0.72, evaluation: 'decent' },
+      review: { reviewScore: 72 },
+      contentJudge: { evaluation: 'decent' },
     });
     const stdout = `Running review...\n${json}\nDone.`;
 
@@ -398,6 +401,49 @@ describe('runSkillReview', () => {
     const result = await runSkillReview('a/SKILL.md', 50);
     expect(result.score).toBe(72);
     expect(result.passed).toBe(true);
+  });
+
+  test('uses review.reviewScore, not contentJudge.normalizedScore', async () => {
+    // Golden sample shape: the CLI's canonical reviewScore is 18 while the
+    // contentJudge judge was skipped (normalizedScore 0). The action must
+    // report 18, not 0.
+    const jsonOutput = JSON.stringify({
+      review: { reviewScore: 18 },
+      validation: { overallPassed: false, errorCount: 1, output: 'failed' },
+      contentJudge: {
+        success: true,
+        normalizedScore: 0,
+        evaluation: 'validation skipped',
+      },
+    });
+
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(jsonOutput, '', 0);
+
+    const result = await runSkillReview('a/SKILL.md', 0);
+    expect(result.score).toBe(18);
+    expect(result.passed).toBe(true);
+  });
+
+  test('reviewScore null → score unavailable', async () => {
+    const jsonOutput = JSON.stringify({
+      review: { reviewScore: null },
+      contentJudge: { evaluation: 'no score' },
+    });
+
+    // threshold 0 → still passes despite unavailable score
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(jsonOutput, '', 0);
+    const passes = await runSkillReview('a/SKILL.md', 0);
+    expect(passes.score).toBe(-1);
+    expect(passes.passed).toBe(true);
+
+    // threshold > 0 → cannot satisfy threshold, not passed
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(jsonOutput, '', 0);
+    const fails = await runSkillReview('b/SKILL.md', 50);
+    expect(fails.score).toBe(-1);
+    expect(fails.passed).toBe(false);
   });
 });
 

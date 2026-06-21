@@ -153,6 +153,7 @@ export async function runSkillReview(
     };
   }
   let parsed: {
+    review?: { reviewScore?: number | null };
     contentJudge?: { normalizedScore?: number; evaluation?: unknown };
     validation?: { output?: unknown };
   };
@@ -170,8 +171,15 @@ export async function runSkillReview(
     };
   }
 
-  const normalizedScore = parsed.contentJudge?.normalizedScore ?? 0;
-  const score = Math.round(normalizedScore * 100);
+  // The CLI's canonical score is review.reviewScore (already 0-100, blending
+  // content + description judges). This is the value tessl uses for its own
+  // --threshold gate, so the action must derive from the same field rather
+  // than contentJudge.normalizedScore (which can disagree, e.g. golden sample:
+  // reviewScore 18 vs contentJudge.normalizedScore 0).
+  const reviewScore = parsed.review?.reviewScore;
+  const hasScore = typeof reviewScore === 'number';
+  // -1 represents an unavailable/unscored result (see SkillReviewResult.score).
+  const score = hasScore ? Math.round(reviewScore) : -1;
 
   const outputParts: string[] = [];
   if (parsed.validation?.output) {
@@ -185,6 +193,8 @@ export async function runSkillReview(
     );
   }
 
+  // When the score is unavailable (-1, reviewScore null/missing), threshold 0
+  // still passes; any positive threshold cannot be satisfied (-1 < threshold).
   return {
     skillPath: skillFilePath,
     passed: threshold === 0 || score >= threshold,
