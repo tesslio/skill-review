@@ -111,6 +111,13 @@ export interface SkillReviewResult {
   error?: string;
 }
 
+export function isAuthErrorMessage(message: string | undefined): boolean {
+  if (!message) return false;
+  return /requires you to be logged in|run tessl login|401 unauthorized|authentication required|not authenticated/i.test(
+    message,
+  );
+}
+
 export async function runSkillReview(
   skillFilePath: string,
   threshold: number,
@@ -129,15 +136,16 @@ export async function runSkillReview(
 
   const exitCode = await proc.exited;
   if (exitCode !== 0) {
+    const error = stderr || stdout || `Process exited with code ${exitCode}`;
     console.warn(
-      `tessl skill review failed for ${skillFilePath} (exit code ${exitCode}): ${stderr}`,
+      `tessl skill review failed for ${skillFilePath} (exit code ${exitCode}): ${error}`,
     );
     return {
       skillPath: skillFilePath,
-      passed: threshold === 0,
+      passed: threshold === 0 && !isAuthErrorMessage(error),
       score: -1,
       output: '',
-      error: stderr || `Process exited with code ${exitCode}`,
+      error,
     };
   }
 

@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { getChangedSkillFiles } from './changed-files.ts';
 import { postOrUpdateComment } from './comment.ts';
 import type { SkillReviewResult } from './skill-review.ts';
-import { runSkillReview } from './skill-review.ts';
+import { isAuthErrorMessage, runSkillReview } from './skill-review.ts';
 
 const CONCURRENCY_LIMIT = 5;
 
@@ -53,7 +53,18 @@ async function main(): Promise<void> {
     }
   }
 
-  // 5. Check threshold
+  // 5. Auth failures are infrastructure failures, not score failures.
+  // `fail-threshold: 0` disables score gating only; it must not hide missing auth.
+  const authFailures = results.filter((r) => isAuthErrorMessage(r.error));
+  if (authFailures.length > 0) {
+    const summary = authFailures.map((r) => `  ${r.skillPath}`).join('\n');
+    core.setFailed(
+      `Tessl authentication failed for ${authFailures.length} skill(s). Configure the tessl-token input with a Tessl API token stored in a GitHub secret.\n${summary}`,
+    );
+    return;
+  }
+
+  // 6. Check threshold
   if (threshold > 0) {
     const failed = results.filter((r) => !r.passed);
     if (failed.length > 0) {
