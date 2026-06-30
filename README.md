@@ -2,7 +2,7 @@
 
 A GitHub Action that automatically reviews `SKILL.md` files changed in a pull request and posts the results as a PR comment.
 
-**No authentication required.** This action runs `tessl skill review` locally — no Tessl account or API token needed. The only token used is the GitHub-provided `GITHUB_TOKEN` for posting PR comments.
+This action requires a Tessl API token. Store the token as a GitHub repository secret, for example `TESSL_TOKEN`, and pass it with the `tessl-token` input.
 
 ## Usage
 
@@ -23,9 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: tesslio/skill-review@main
+        with:
+          tessl-token: ${{ secrets.TESSL_TOKEN }}
 ```
 
-That's it. Any PR that modifies a `SKILL.md` file will get an automated review comment.
+Any PR that modifies a `SKILL.md` file will get an automated review comment.
 
 ## Inputs
 
@@ -34,6 +36,7 @@ That's it. Any PR that modifies a `SKILL.md` file will get an automated review c
 | `path` | Root path to search for SKILL.md files | `.` |
 | `comment` | Whether to post results as a PR comment | `true` |
 | `fail-threshold` | Minimum score (0-100) to pass. Set to `0` to never fail. | `0` |
+| `tessl-token` | Tessl API token used to authenticate review requests. Store it as a GitHub secret. | unset |
 
 ### Setting a quality gate
 
@@ -42,6 +45,7 @@ To enforce a minimum skill quality score, set `fail-threshold`:
 ```yaml
 - uses: tesslio/skill-review@main
   with:
+    tessl-token: ${{ secrets.TESSL_TOKEN }}
     fail-threshold: 70
 ```
 
