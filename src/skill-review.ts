@@ -53,10 +53,49 @@ function formatEvaluation(value: unknown): string {
   return parts.length > 0 ? parts.join('\n') : JSON.stringify(value, null, 2);
 }
 
-/** Safely convert an unknown value to a readable string */
-function stringify(value: unknown): string {
-  if (typeof value === 'string') return value;
-  return JSON.stringify(value, null, 2);
+interface ValidationCheck {
+  name: string;
+  status: 'passed' | 'warning' | 'error';
+  message: string;
+}
+
+interface Validation {
+  checks?: ValidationCheck[];
+  overallPassed?: boolean;
+  errorCount?: number;
+  warningCount?: number;
+}
+
+/** Marker emoji for a validation check status */
+function statusMarker(status: ValidationCheck['status']): string {
+  if (status === 'passed') return '✅';
+  if (status === 'warning') return '⚠️';
+  return '❌';
+}
+
+/** Render validation checks into a readable markdown table with a summary line. */
+function formatValidation(validation: Validation): string {
+  const parts: string[] = [];
+
+  const passed = validation.overallPassed ? 'passed' : 'failed';
+  const errors = validation.errorCount ?? 0;
+  const warnings = validation.warningCount ?? 0;
+  parts.push(
+    `**Validation ${passed}** — ${errors} error(s), ${warnings} warning(s)`,
+  );
+
+  const checks = validation.checks ?? [];
+  if (checks.length > 0) {
+    parts.push('', '| | Check | Message |', '|--|-------|---------|');
+    for (const check of checks) {
+      const label = check.name.replace(/_/g, ' ');
+      parts.push(
+        `| ${statusMarker(check.status)} | **${label}** | ${check.message} |`,
+      );
+    }
+  }
+
+  return parts.join('\n');
 }
 
 /**
@@ -162,7 +201,7 @@ export async function runSkillReview(
   }
   let parsed: {
     contentJudge?: { normalizedScore?: number; evaluation?: unknown };
-    validation?: { output?: unknown };
+    validation?: Validation;
   };
 
   try {
@@ -182,9 +221,9 @@ export async function runSkillReview(
   const score = Math.round(normalizedScore * 100);
 
   const outputParts: string[] = [];
-  if (parsed.validation?.output) {
+  if (parsed.validation?.checks && parsed.validation.checks.length > 0) {
     outputParts.push(
-      '### Validation Checks\n\n' + stringify(parsed.validation.output),
+      '### Validation Checks\n\n' + formatValidation(parsed.validation),
     );
   }
   if (parsed.contentJudge?.evaluation) {
