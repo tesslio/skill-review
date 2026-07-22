@@ -402,6 +402,28 @@ describe('runSkillReview', () => {
     expect(result.output).not.toContain('[object Object]');
   });
 
+  test('renders scores above the legacy 1-3 scale without throwing', async () => {
+    const jsonOutput = JSON.stringify({
+      contentJudge: {
+        normalizedScore: 0.9,
+        evaluation: {
+          scores: {
+            actionability: { score: 5, reasoning: 'Fully executable.' },
+            workflow_clarity: { score: 4, reasoning: 'Clear sequencing.' },
+          },
+        },
+      },
+    });
+
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(jsonOutput, '', 0);
+
+    const result = await runSkillReview('a/SKILL.md', 0);
+    expect(result.error).toBeUndefined();
+    expect(result.output).toContain('5/5');
+    expect(result.output).toContain('4/4');
+  });
+
   test('JSON with prefix and suffix text', async () => {
     const json = JSON.stringify({
       contentJudge: { normalizedScore: 0.72, evaluation: 'decent' },
