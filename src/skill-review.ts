@@ -1,10 +1,17 @@
 import { dirname, join } from 'node:path';
 
-/** Format a score dimension as a table row with visual bar */
+/**
+ * Format a score dimension as a table row with visual bar.
+ * `max` is a fallback only — the judge's actual rubric scale isn't currently
+ * exposed in `tessl skill review --json` output, so we widen to the observed
+ * score rather than assume a fixed scale (which previously crashed once
+ * dimension scores exceeded the hardcoded default of 3).
+ */
 function scoreBar(score: number, max = 3): string {
+  const effectiveMax = Math.max(max, score);
   const filled = '█'.repeat(score);
-  const empty = '░'.repeat(max - score);
-  return `${filled}${empty} ${score}/${max}`;
+  const empty = '░'.repeat(effectiveMax - score);
+  return `${filled}${empty} ${score}/${effectiveMax}`;
 }
 
 /**
