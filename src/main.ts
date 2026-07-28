@@ -10,6 +10,18 @@ async function main(): Promise<void> {
   const rootPath = process.env.INPUT_PATH || '.';
   const shouldComment = process.env.INPUT_COMMENT !== 'false';
   const threshold = parseThreshold(process.env.INPUT_FAIL_THRESHOLD);
+  const workspace = (process.env.INPUT_WORKSPACE || '').trim();
+
+  // Tessl Review requires a workspace. Fail early with an actionable message
+  // rather than letting every per-skill review error out on the missing flag.
+  if (!workspace) {
+    core.setFailed(
+      'The `workspace` input is required. Set it to your Tessl workspace name or ID ' +
+        '(see `tessl workspace list`), for example:\n' +
+        '    with:\n      workspace: your-workspace\n      tessl-token: ${{ secrets.TESSL_TOKEN }}',
+    );
+    return;
+  }
 
   // 1. Detect changed SKILL.md files
   const changedFiles = await getChangedSkillFiles(rootPath);
@@ -30,7 +42,7 @@ async function main(): Promise<void> {
     const batchResults = await Promise.all(
       batch.map(async (filePath) => {
         console.log(`Reviewing ${filePath}...`);
-        const result = await runSkillReview(filePath, threshold);
+        const result = await runSkillReview(filePath, threshold, workspace);
         const status = result.error
           ? 'ERROR'
           : result.passed
@@ -42,6 +54,11 @@ async function main(): Promise<void> {
     );
     results.push(...batchResults);
   }
+
+  // 3b. Write a job summary so scores and required changes are visible in the
+  // Actions run itself — no click-through, and it still shows on fork PRs where
+  // the PR comment can't be posted.
+  await writeJobSummary(results, threshold);
 
   // 4. Post PR comment (may fail on fork PRs due to read-only token)
   if (shouldComment) {
@@ -78,6 +95,56 @@ async function main(): Promise<void> {
   }
 
   console.log('Skill review completed successfully.');
+}
+
+/**
+ * Write a GitHub Actions job summary: one row per skill with its score and
+ * pass/fail, followed by the required changes for anything that didn't pass
+ * cleanly. Surfacing this here (not just in a collapsed PR comment section)
+ * means reviewers see what to fix directly on the run.
+ */
+async function writeJobSummary(
+  results: SkillReviewResult[],
+  threshold: number,
+): Promise<void> {
+  try {
+    const summary = core.summary.addHeading('🔍 Tessl Skill Review', 2);
+
+    summary.addTable([
+      [
+        { data: 'Skill', header: true },
+        { data: 'Score', header: true },
+        { data: 'Status', header: true },
+      ],
+      ...results.map((r) => {
+        const status = r.error
+          ? '⚠️ Error'
+          : threshold > 0
+            ? r.passed
+              ? '✅ Pass'
+              : '❌ Fail'
+            : 'ℹ️ Reviewed';
+        return [
+          `<code>${r.skillPath}</code>`,
+          r.score >= 0 ? `${r.score}%` : '—',
+          status,
+        ];
+      }),
+    ]);
+
+    for (const r of results) {
+      const changes = r.error ? [r.error] : (r.requiredChanges ?? []);
+      if (changes.length === 0) continue;
+      summary.addHeading(`Required changes — ${r.skillPath}`, 3);
+      if (r.overallAssessment) summary.addRaw(`> ${r.overallAssessment}\n\n`);
+      summary.addList(changes);
+    }
+
+    await summary.write();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    core.warning(`Could not write job summary: ${msg}`);
+  }
 }
 
 export function parseThreshold(value: string | undefined): number {

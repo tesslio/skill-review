@@ -44,7 +44,18 @@ function formatComment(
       }
     } else {
       const badge = result.score >= 0 ? ` ${scoreBadge(result.score)}${emoji}` : '';
-      body = `${badge}\n\n<details>\n<summary>Review Details</summary>\n\n${result.output}\n\n</details>\n`;
+
+      // Surface required changes prominently (not hidden behind the
+      // <details>), so authors see what to fix without a click-through.
+      let prominent = '';
+      if (result.requiredChanges && result.requiredChanges.length > 0) {
+        const items = result.requiredChanges
+          .map((c) => `- ${c}`)
+          .join('\n');
+        prominent = `\n\n**Required changes**\n${items}\n`;
+      }
+
+      body = `${badge}${prominent}\n\n<details>\n<summary>Full review details</summary>\n\n${result.output}\n\n</details>\n`;
     }
 
     return `### \`${result.skillPath}\`\n${body}`;
