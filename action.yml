@@ -14,8 +14,8 @@ inputs:
     description: 'Minimum average score (0-100) to pass the check. Set to 0 to never fail.'
     default: '0'
   workspace:
-    description: 'Tessl workspace name or ID that reviews run against (see `tessl workspace list`). Required by Tessl Review.'
-    required: true
+    description: 'Tessl workspace name or ID that reviews run against (see `tessl workspace list`). Leave unset to let the Tessl CLI resolve it from a tessl.json in the repository, or from the only workspace the token can see; set it when the token can see several.'
+    required: false
   tessl-token:
     description: 'Tessl API token used to authenticate review requests. Store this as a GitHub secret, for example secrets.TESSL_TOKEN.'
     required: false
