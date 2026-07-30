@@ -2,7 +2,7 @@
 
 A GitHub Action that automatically reviews `SKILL.md` files changed in a pull request and posts the results as a PR comment.
 
-This action runs [Tessl Review](https://docs.tessl.io) and needs a **Tessl API token**. Store it as a GitHub repository secret, for example `TESSL_TOKEN`, and pass it with the `tessl-token` input. Reviews need Tessl CLI 0.82.0 or later, which the action installs by default.
+This action runs [Tessl Review](https://docs.tessl.io) and needs a **Tessl API token**. Store it as a GitHub repository secret, for example `TESSL_TOKEN`, and pass it with the `tessl-token` input. Reviews need Tessl CLI 0.90.0 or later, which the action installs by default.
 
 Reviews run against one Tessl workspace. The CLI picks it for you when the repository has a `tessl.json` linked to a workspace, or when your token can see exactly one. A token that can see several — usual for an organisation account — needs the `workspace` input, and the check fails asking for it until you set one.
 
