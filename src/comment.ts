@@ -22,6 +22,28 @@ function scoreBadge(score: number): string {
   return `![score](https://img.shields.io/badge/review_score-${score}%25-${color}?logo=${logoParam})`;
 }
 
+/**
+ * What a reader should see before expanding anything: the judge's one-line
+ * assessment, then every validation check that didn't pass. The collapsed
+ * details carry the per-dimension table and the passed-check tally.
+ */
+function reviewHighlights(result: SkillReviewResult): string {
+  const parts: string[] = [];
+  if (result.overallAssessment) {
+    parts.push(`_${result.overallAssessment}_`);
+  }
+  if (result.validationIssues && result.validationIssues.length > 0) {
+    parts.push(
+      [
+        '**Validation**',
+        '',
+        ...result.validationIssues.map((i) => `- ${i}`),
+      ].join('\n'),
+    );
+  }
+  return parts.length > 0 ? `\n\n${parts.join('\n\n')}` : '';
+}
+
 function formatComment(
   results: SkillReviewResult[],
   threshold: number,
@@ -44,7 +66,8 @@ function formatComment(
       }
     } else {
       const badge = result.score >= 0 ? ` ${scoreBadge(result.score)}${emoji}` : '';
-      body = `${badge}\n\n<details>\n<summary>Review Details</summary>\n\n${result.output}\n\n</details>\n`;
+
+      body = `${badge}${reviewHighlights(result)}\n\n<details>\n<summary>Full review details</summary>\n\n${result.output}\n\n</details>\n`;
     }
 
     return `### \`${result.skillPath}\`\n${body}`;

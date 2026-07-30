@@ -13,6 +13,9 @@ inputs:
   fail-threshold:
     description: 'Minimum average score (0-100) to pass the check. Set to 0 to never fail.'
     default: '0'
+  workspace:
+    description: 'Tessl workspace name or ID that reviews run against (see `tessl workspace list`). Leave unset to let the Tessl CLI resolve it from a tessl.json in the repository, or from the only workspace the token can see; set it when the token can see several.'
+    required: false
   tessl-token:
     description: 'Tessl API token used to authenticate review requests. Store this as a GitHub secret, for example secrets.TESSL_TOKEN.'
     required: false
@@ -32,6 +35,7 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_COMMENT: ${{ inputs.comment }}
         INPUT_FAIL_THRESHOLD: ${{ inputs.fail-threshold }}
+        INPUT_WORKSPACE: ${{ inputs.workspace }}
         TESSL_API_TOKEN: ${{ inputs.tessl-token }}
         TESSL_TOKEN: ${{ inputs.tessl-token }}
         GITHUB_TOKEN: ${{ github.token }}
