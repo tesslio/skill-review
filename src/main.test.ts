@@ -268,6 +268,23 @@ describe('runSkillReview', () => {
 
   const WS = 'test-workspace';
 
+  test('keeps multiline judge reasoning inside its table cell', async () => {
+    const jsonOutput = JSON.stringify({
+      review: { reviewScore: 85 },
+      judges: {
+        content: {
+          evaluation: {
+            scores: { clarity: { score: 2, reasoning: 'First | item\r\nSecond paragraph\nThird line' } },
+          },
+        },
+      },
+    });
+    // @ts-expect-error mock assignment
+    Bun.spawn = makeMockSpawn(jsonOutput, '', 0);
+    const result = await runSkillReview('skills/test/SKILL.md', 0, WS);
+    expect(result.output).toContain('First \\| item<br>Second paragraph<br>Third line |');
+  });
+
   test('successful review with JSON output', async () => {
     const jsonOutput = JSON.stringify({
       review: { reviewScore: 85 },

@@ -79,7 +79,9 @@ function formatEvaluation(judge: JudgeResult | undefined): string {
     const label = key.replace(/_/g, ' ');
     const bar =
       typeof val.score === 'number' ? scoreBar(val.score, scaleMax) : '—';
-    const reasoning = (val.reasoning ?? '').replace(/\|/g, '\\|');
+    const reasoning = (val.reasoning ?? '')
+      .replace(/\|/g, '\\|')
+      .replace(/\r\n|\r|\n/g, '<br>');
     parts.push(`| **${label}** | ${bar} | ${reasoning} |`);
   }
 
